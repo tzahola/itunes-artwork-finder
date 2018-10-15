@@ -8,6 +8,13 @@ body {
   font-family: Helvetica, Arial, sans-serif;
 }
 
+#github {
+  font-size: 8pt;
+  position: absolute;
+  top: 1em;
+  left: 1em;
+}
+
 #searchForm {
   max-width: 50em;
   margin: 3em auto;
@@ -16,6 +23,7 @@ body {
 
 #searchForm input {
   -webkit-appearance: none;
+  outline: none;
   box-sizing: border-box;
   font-size: 18pt;
   margin: 0;
@@ -74,10 +82,6 @@ body {
   }
 }
 
-.clear {
-  clear: both;
-}
-
 .result h2 {
   font-size: 10pt;
 }
@@ -123,6 +127,17 @@ body {
 .result .links a:hover {
   background: #fff;
   color: #333;
+}
+
+#error, #progress {
+  text-align: center;
+  flex-basis: 100%;
+}
+
+#progress {
+  color: #ddd;
+  font-size: 24pt;
+  font-weight: bold;
 }
     </style>
     <script type="text/javascript">
@@ -242,8 +257,12 @@ async function onload() {
   const country = searchParams.get('country') || 'us'
   const entity = searchParams.get('entity') || 'album'
 
-  document.body.innerHTML = `<form id="searchForm" method="GET">
-    <div id="searchField"><input type="text" name="term" value="${term}" /><input type="submit" value="Search" /></div>
+  document.body.innerHTML = `
+    <div id="github"><a href="https://github.com/tzahola/itunes-artwork-finder">Fork me on GitHub</a></div>
+    <form id="searchForm" method="GET">
+    <div id="searchField">
+      <h1>iTunes Artwork Finder</h1>
+      <input type="text" name="term" value="${term || ""}" placeholder="Enter search term here" /><input type="submit" value="Search" /></div>
     <div id="options">
       <table>
         <tr>
@@ -266,14 +285,23 @@ async function onload() {
     return
   }
 
-  const results = await fetchResults(term, entity, country)
-  console.log(results)
-
   const resultsDiv = document.getElementById('results')
+  resultsDiv.innerHTML = `<div id="progress">Loading results...</div>`
+
+  let error
+  let results
+  try {
+    results = await fetchResults(term, entity, country)
+    console.log(results)
+  } catch(e) {
+    error = e.message
+    console.log(e)
+  }
+
   if (results == null) {
-    resultsDiv.innerHTML = "Sorry, some error occured."
+    resultsDiv.innerHTML = `<div id="error"><p>Sorry, some error occured while loading the results...</p>${error !== null ? `<p>(${error})</p>` : ""}</div>`
   } else {
-    resultsDiv.innerHTML = `<div id="results">${results["results"].map(result => {
+    resultsDiv.innerHTML = `${results["results"].map(result => {
       const artworkUrl100 = result["artworkUrl100"]
       const artworkUrl300 = artworkUrl100.replace('100x100', '300x300')
       const artworkUrl600 = artworkUrl100.replace('100x100', '600x600')
@@ -292,7 +320,7 @@ async function onload() {
         </div>
         <h2>${title}</h2>
       </div>`
-    }).join('')}<div class="clear"></div></div>`
+    }).join('')}`
   }
 }
     </script>
