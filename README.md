@@ -6,4 +6,4 @@ iTunes Artwork Finder
 - Available at [https://decoupled.app/itunes-artwork-finder](https://decoupled.app/itunes-artwork-finder)
 - Added macOS Automator service
 
-![Automator service demo][https://github.com/tzahola/itunes-artwork-finder/raw/master/demo.gif]
+![Automator service demo](https://github.com/tzahola/itunes-artwork-finder/raw/master/demo.gif)
