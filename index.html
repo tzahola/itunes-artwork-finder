@@ -132,12 +132,16 @@ body {
 #error, #progress {
   text-align: center;
   flex-basis: 100%;
+  font-size: 24pt;
+  font-weight: bold;
+}
+
+#error {
+  color: #000;
 }
 
 #progress {
   color: #ddd;
-  font-size: 24pt;
-  font-weight: bold;
 }
     </style>
     <script type="text/javascript">
@@ -301,26 +305,31 @@ async function onload() {
   if (results == null) {
     resultsDiv.innerHTML = `<div id="error"><p>Sorry, some error occured while loading the results...</p>${error !== null ? `<p>(${error})</p>` : ""}</div>`
   } else {
-    resultsDiv.innerHTML = `${results["results"].map(result => {
-      const artworkUrl100 = result["artworkUrl100"]
-      const artworkUrl300 = artworkUrl100.replace('100x100', '300x300')
-      const artworkUrl600 = artworkUrl100.replace('100x100', '600x600')
-      const artworkUrl1200 = artworkUrl100.replace('100x100', '1200x1200')
-      const artworkUrl5000 = artworkUrl100.replace('100x100', '5000x5000')
-      
-      const title = entity === 'album' ? `${result['artistName']} - ${result['collectionName']}` : (result['collectionName'] || result['trackName'])
-      return `<div class="result">
-        <div class="artwork">
-          <img src="${artworkUrl300}" />
-          <div class="links">
-            <a href="${artworkUrl600}" target="_blank">600</a>
-            <a href="${artworkUrl1200}" target="_blank">1200</a>
-            <a href="${artworkUrl5000}" target="_blank">5000</a>
+    const resultItems = results["results"]
+    if (resultItems === null || !Array.isArray(resultItems) || resultItems.length === 0) {
+      resultsDiv.innerHTML = `<div id="error">Sorry, no results.</div>`
+    } else {
+      resultsDiv.innerHTML = `${resultItems.map(result => {
+        const artworkUrl100 = result["artworkUrl100"]
+        const artworkUrl300 = artworkUrl100.replace('100x100', '300x300')
+        const artworkUrl600 = artworkUrl100.replace('100x100', '600x600')
+        const artworkUrl1200 = artworkUrl100.replace('100x100', '1200x1200')
+        const artworkUrl5000 = artworkUrl100.replace('100x100', '5000x5000')
+        
+        const title = entity === 'album' ? `${result['artistName']} - ${result['collectionName']}` : (result['collectionName'] || result['trackName'])
+        return `<div class="result">
+          <div class="artwork">
+            <img src="${artworkUrl300}" />
+            <div class="links">
+              <a href="${artworkUrl600}" target="_blank">600</a>
+              <a href="${artworkUrl1200}" target="_blank">1200</a>
+              <a href="${artworkUrl5000}" target="_blank">5000</a>
+            </div>
           </div>
-        </div>
-        <h2>${title}</h2>
-      </div>`
-    }).join('')}`
+          <h2>${title}</h2>
+        </div>`
+      }).join('')}`
+    }
   }
 }
     </script>
