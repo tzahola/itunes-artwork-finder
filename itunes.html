@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>iTunes Artwork Finder</title>
+    <style type="text/css">
+body {
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+#searchForm {
+  max-width: 50em;
+  margin: 3em auto;
+  padding: 0 3em;
+}
+
+#searchForm input {
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  font-size: 18pt;
+  margin: 0;
+  padding: 0.5em;
+  border: 2px solid #0D77FA;
+  font-weight: bold;
+}
+
+#searchForm input[name=term] {
+  width: 80%;
+  border-right: 0;
+  border-radius: 0.5em 0 0 0.5em;
+}
+
+#searchForm input[type=submit] {
+  width: 20%;
+  border-left: 0;
+  background: #0D77FA;
+  color: #fff;
+  border-radius: 0 0.5em 0.5em 0;
+}
+
+#options {
+  display: flex;
+  margin-top: 3em;
+  justify-content: flex-end;
+  font-size: 10pt;
+}
+
+#options select {
+  width: 20em;
+}
+
+#results {
+  margin: 3em;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.result {
+  flex-basis: 20%;
+  box-sizing: border-box;
+  padding: 1em;
+  overflow: hidden;
+}
+
+@media(max-width: 1000px) {
+  .result {
+    flex-basis: 33.3%;
+  }
+}
+
+@media(max-width: 600px) {
+  .result {
+    flex-basis: 100%;
+  }
+}
+
+.clear {
+  clear: both;
+}
+
+.result h2 {
+  font-size: 10pt;
+}
+
+.result .artwork {
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%;
+}
+
+.result .artwork img {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #f0f0f0;
+}
+
+.result .links {
+  position: absolute;
+  bottom: 0;
+  visibility: hidden;
+  font-size: 8pt;
+}
+
+.result:hover .links {
+  visibility: visible;
+}
+
+.result .links a {
+  display: block;
+  float: left;
+  padding: 0.5em;
+  color: #fff;
+  background: #333;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.result .links a:hover {
+  background: #fff;
+  color: #333;
+}
+    </style>
+    <script type="text/javascript">
+'use strict'
+
+const countries = Object.freeze({
+  ae: 'United Arab Emirates',   ag: 'Antigua and Barbuda',              ai: 'Anguilla',
+  al: 'Albania',                am: 'Armenia',                          ao: 'Angola',
+  ar: 'Argentina',              at: 'Austria',                          au: 'Australia',
+  az: 'Azerbaijan',             bb: 'Barbados',                         be: 'Belgium',
+  bf: 'Burkina-Faso',           bg: 'Bulgaria',                         bh: 'Bahrain',
+  bj: 'Benin',                  bm: 'Bermuda',                          bn: 'Brunei Darussalam',
+  bo: 'Bolivia',                br: 'Brazil',                           bs: 'Bahamas',
+  bt: 'Bhutan',                 bw: 'Botswana',                         by: 'Belarus',
+  bz: 'Belize',                 ca: 'Canada',                           cg: 'Democratic Republic of the Congo',
+  ch: 'Switzerland',            cl: 'Chile',                            cn: 'China',
+  co: 'Colombia',               cr: 'Costa Rica',                       cv: 'Cape Verde',
+  cy: 'Cyprus',                 cz: 'Czech Republic',                   de: 'Germany',
+  dk: 'Denmark',                dm: 'Dominica',                         do: 'Dominican Republic',
+  dz: 'Algeria',                ec: 'Ecuador',                          ee: 'Estonia',
+  eg: 'Egypt',                  es: 'Spain',                            fi: 'Finland',
+  fj: 'Fiji',                   fm: 'Federated States of Micronesia',   fr: 'France',
+  gb: 'United Kingdom',         gd: 'Grenada',                          gh: 'Ghana',
+  gm: 'Gambia',                 gr: 'Greece',                           gt: 'Guatemala',
+  gw: 'Guinea Bissau',          gy: 'Guyana',                           hk: 'Hong Kong',
+  hn: 'Honduras',               hr: 'Croatia',                          hu: 'Hungary',
+  id: 'Indonesia',              ie: 'Ireland',                          il: 'Israel',
+  in: 'India',                  is: 'Iceland',                          it: 'Italy',
+  jm: 'Jamaica',                jo: 'Jordan',                           jp: 'Japan',
+  ke: 'Kenya',                  kg: 'Krygyzstan',                       kh: 'Cambodia',
+  kn: 'Saint Kitts and Nevis',  kr: 'South Korea',                      kw: 'Kuwait',
+  ky: 'Cayman Islands',         kz: 'Kazakhstan',                       la: 'Laos',
+  lb: 'Lebanon',                lc: 'Saint Lucia',                      lk: 'Sri Lanka',
+  lr: 'Liberia',                lt: 'Lithuania',                        lu: 'Luxembourg',
+  lv: 'Latvia',                 md: 'Moldova',                          mg: 'Madagascar',
+  mk: 'Macedonia',              ml: 'Mali',                             mn: 'Mongolia',
+  mo: 'Macau',                  mr: 'Mauritania',                       ms: 'Montserrat',
+  mt: 'Malta',                  mu: 'Mauritius',                        mw: 'Malawi',
+  mx: 'Mexico',                 my: 'Malaysia',                         mz: 'Mozambique',
+  na: 'Namibia',                ne: 'Niger',                            ng: 'Nigeria',
+  ni: 'Nicaragua',              nl: 'Netherlands',                      np: 'Nepal',
+  no: 'Norway',                 nz: 'New Zealand',                      om: 'Oman',
+  pa: 'Panama',                 pe: 'Peru',                             pg: 'Papua New Guinea',
+  ph: 'Philippines',            pk: 'Pakistan',                         pl: 'Poland',
+  pt: 'Portugal',               pw: 'Palau',                            py: 'Paraguay',
+  qa: 'Qatar',                  ro: 'Romania',                          ru: 'Russia',
+  sa: 'Saudi Arabia',           sb: 'Soloman Islands',                  sc: 'Seychelles',
+  se: 'Sweden',                 sg: 'Singapore',                        si: 'Slovenia',
+  sk: 'Slovakia',               sl: 'Sierra Leone',                     sn: 'Senegal',
+  sr: 'Suriname',               st: 'Sao Tome e Principe',              sv: 'El Salvador',
+  sz: 'Swaziland',              tc: 'Turks and Caicos Islands',         td: 'Chad',
+  th: 'Thailand',               tj: 'Tajikistan',                       tm: 'Turkmenistan',
+  tn: 'Tunisia',                tr: 'Turkey',                           tt: 'Republic of Trinidad and Tobago',
+  tw: 'Taiwan',                 tz: 'Tanzania',                         ua: 'Ukraine',
+  ug: 'Uganda',                 us: 'United States of America',         uy: 'Uruguay',
+  uz: 'Uzbekistan',             vc: 'Saint Vincent and the Grenadines', ve: 'Venezuela',
+  vg: 'British Virgin Islands', vn: 'Vietnam',                          ye: 'Yemen',
+  za: 'South Africa',           zw: 'Zimbabwe'
+})
+
+const entities = Object.freeze({
+  tvSeason: "TV Show",
+  movie: "Movie",
+  ebook: "iBook",
+  album: "Album",
+  software: "App (iPhone or Universal)",
+  iPadSoftware: "App (iPad)",
+  macSoftware: "App (macOS)",
+  audiobook: "Audiobook",
+  podcast: "Podcast",
+  musicVideo: "Music Video",
+  id: "Movie ID",
+  idAlbum: "Album ID",
+  shortFilm: "Short Film"
+})
+
+function buildUrl(term, entity, country) {
+  const urlSearchParams = new URLSearchParams()
+  urlSearchParams.set('country', country)
+  urlSearchParams.set('limit', 25)
+  if (entity == 'shortFilm') {
+    urlSearchParams.set('entity', 'movie')
+    urlSearchParams.set('attribute', 'shortFilmTerm')
+  } else {
+    urlSearchParams.set('entity', entity)
+  }
+
+  let baseUrl
+  switch (entity) {
+    case 'id':
+    case 'idAlbum': {
+      baseUrl = 'https://itunes.apple.com/lookup'
+      urlSearchParams.set('id', term)
+    } break
+    default: {
+      baseUrl = 'https://itunes.apple.com/search'
+      urlSearchParams.set('term', term)
+    } break
+  }
+
+  return `${baseUrl}?${urlSearchParams}`
+}
+
+async function fetchResults(term, entity, country) {
+  const url = buildUrl(term, entity, country)
+  const response = await fetch(url)
+  if (!response.ok) {
+    console.log(response)
+    return null
+  }
+  return response.json()
+}
+
+async function onload() {
+  const searchParams = new URLSearchParams(window.location.search)
+  const term = searchParams.get('term')
+  const country = searchParams.get('country') || 'us'
+  const entity = searchParams.get('entity') || 'album'
+
+  document.body.innerHTML = `<form id="searchForm" method="GET">
+    <div id="searchField"><input type="text" name="term" value="${term}" /><input type="submit" value="Search" /></div>
+    <div id="options">
+      <table>
+        <tr>
+          <td><label for="country">iTunes Store Country:</label></td>
+          <td><select name="country">${ 
+            Object.keys(countries).map(c => `<option value="${c}" ${c === country ? "selected" : ""}>${countries[c]}</option>`).join('')
+          }</select></td>
+        </tr>
+        <tr>
+          <td><label for="country">Media type:</label></td>
+          <td><select name="entity">${ 
+            Object.keys(entities).map(e => `<option value="${e}" ${e === entity ? "selected" : ""}>${entities[e]}</option>`).join('')
+          }</select></td>
+        </tr>
+      </table>
+    </div>
+  </form><div id="results"></div>`
+
+  if (term == null || term.length == 0) {
+    return
+  }
+
+  const results = await fetchResults(term, entity, country)
+  console.log(results)
+
+  const resultsDiv = document.getElementById('results')
+  if (results == null) {
+    resultsDiv.innerHTML = "Sorry, some error occured."
+  } else {
+    resultsDiv.innerHTML = `<div id="results">${results["results"].map(result => {
+      const artworkUrl100 = result["artworkUrl100"]
+      const artworkUrl300 = artworkUrl100.replace('100x100', '300x300')
+      const artworkUrl600 = artworkUrl100.replace('100x100', '600x600')
+      const artworkUrl1200 = artworkUrl100.replace('100x100', '1200x1200')
+      const artworkUrl5000 = artworkUrl100.replace('100x100', '5000x5000')
+      
+      const title = entity === 'album' ? `${result['artistName']} - ${result['collectionName']}` : (result['collectionName'] || result['trackName'])
+      return `<div class="result">
+        <div class="artwork">
+          <img src="${artworkUrl300}" />
+          <div class="links">
+            <a href="${artworkUrl600}" target="_blank">600</a>
+            <a href="${artworkUrl1200}" target="_blank">1200</a>
+            <a href="${artworkUrl5000}" target="_blank">5000</a>
+          </div>
+        </div>
+        <h2>${title}</h2>
+      </div>`
+    }).join('')}<div class="clear"></div></div>`
+  }
+}
+    </script>
+  </head>
+  <body onload="onload()"></body>
+</html>
