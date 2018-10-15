@@ -8,7 +8,7 @@ body {
   font-family: Helvetica, Arial, sans-serif;
 }
 
-#github {
+#corner {
   font-size: 8pt;
   position: absolute;
   top: 1em;
@@ -263,7 +263,10 @@ async function onload() {
   const entity = searchParams.get('entity') || 'album'
 
   document.body.innerHTML = `
-    <div id="github"><a href="https://github.com/tzahola/itunes-artwork-finder">Fork me on GitHub</a></div>
+    <div id="corner">
+      <a href="https://github.com/tzahola/itunes-artwork-finder">Fork on GitHub</a><br/>
+      <a href="Find%20iTunes%20Artwork.workflow.zip">Integrate into macOS Automator</a>
+    </div>
     <form id="searchForm" method="GET">
     <div id="searchField">
       <h1>iTunes Artwork Finder</h1>
